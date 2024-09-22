@@ -150,15 +150,15 @@ export default function TextToImage() {
   }
 
   return (
-    <div className="flex flex-col items-center space-y-4 p-4">
-      <div className="flex space-x-4 items-start">
-        <div className="flex flex-col space-y-2">
+    <div className="flex flex-col items-center space-y-4 p-4 w-full">
+      <div className="flex space-x-4 items-start max-w-xl w-full">
+        <div className="flex flex-col space-y-2 grow">
           <Textarea
             value={text}
             onChange={handleTextChange}
             onKeyDown={handleKeyDown}
             placeholder="ここにテキストを入力してください（最大3行）"
-            className="w-64 h-24 resize-none"
+            className="w-full h-24 resize-none"
             rows={3}
             maxLength={300}
             aria-label="テキスト入力（最大3行）"
