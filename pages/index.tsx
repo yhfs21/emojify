@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import TextToImage from "@/components/specific/TextToImage";
+import Footer from "@/components/layout/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,6 +12,7 @@ export default function Home() {
     >
       emojify
       <TextToImage />
+      <Footer />
     </main>
   );
 }
