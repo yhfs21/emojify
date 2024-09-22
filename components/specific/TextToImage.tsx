@@ -14,28 +14,11 @@ export default function TextToImage() {
   const canvasSize = 128 // キャンバスのサイズを固定
 
   const calculateOptimalFontSize = useCallback((ctx: CanvasRenderingContext2D, text: string, maxWidth: number, maxHeight: number) => {
-    let fontSize = 100 // 大きな値から開始
     const lines = text.split('\n')
     const lineCount = lines.length
-    const minLineHeight = 1.2 // 日本語テキストの行間を少し広げる
+    const minLineHeight = 1.1 // 日本語テキストの行間を少し広げる
 
-    while (fontSize > 1) {
-      ctx.font = `${fontSize}px 'Hiragino Sans', 'Meiryo', sans-serif`
-      let totalHeight = 0
-      let maxLineWidth = 0
-
-      for (let i = 0; i < lineCount; i++) {
-        const lineWidth = ctx.measureText(lines[i]).width
-        maxLineWidth = Math.max(maxLineWidth, lineWidth)
-        totalHeight += fontSize * minLineHeight
-      }
-
-      if (maxLineWidth <= maxWidth && totalHeight <= maxHeight) {
-        return fontSize
-      }
-
-      fontSize--
-    }
+    const fontSize = Math.floor(( maxHeight / lineCount ) / minLineHeight)
 
     return fontSize
   }, [])
@@ -47,7 +30,7 @@ export default function TextToImage() {
     ctx.textBaseline = 'middle'
 
     const lines = text.split('\n')
-    const lineHeight = fontSize * 1.2
+    const lineHeight = fontSize * 1.1
     const totalTextHeight = lineHeight * lines.length
 
     let startY = (canvasSize - totalTextHeight) / 2 + lineHeight / 2
@@ -55,8 +38,8 @@ export default function TextToImage() {
 
     lines.forEach((line, index) => {
       const lineWidth = ctx.measureText(line).width
-      const startX = (canvasSize - lineWidth) / 2
-      ctx.fillText(line, startX, startY + lineHeight * index)
+      const startX = canvasSize < lineWidth ? 0: (canvasSize - lineWidth) / 2
+      ctx.fillText(line, startX, startY + lineHeight * index, canvasSize)
     })
 
     // 点線の枠を描画
@@ -119,7 +102,7 @@ export default function TextToImage() {
           ctx.textBaseline = 'middle'
 
           const lines = text.split('\n')
-          const lineHeight = fontSize * 1.2
+          const lineHeight = fontSize * 1.1
           const totalTextHeight = lineHeight * lines.length
 
           let startY = (canvasSize - totalTextHeight) / 2 + lineHeight / 2
@@ -127,8 +110,8 @@ export default function TextToImage() {
 
           lines.forEach((line, index) => {
             const lineWidth = ctx.measureText(line).width
-            const startX = (canvasSize - lineWidth) / 2
-            ctx.fillText(line, startX, startY + lineHeight * index)
+            const startX = canvasSize < lineWidth ? 0: (canvasSize - lineWidth) / 2
+            ctx.fillText(line, startX, startY + lineHeight * index, canvasSize)
           })
         }
 
