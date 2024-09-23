@@ -6,7 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Download, Palette } from "lucide-react"
+
+const fontOptions = [
+  { value: 'Hiragino Sans', label: 'ヒラギノ角ゴシック' },
+  { value: 'Meiryo', label: 'メイリオ' },
+  { value: 'Hiragino Mincho Pro', label: 'ヒラギノ明朝' },
+]
 
 export default function TextToImage() {
   const [text, setText] = useState('')
@@ -15,6 +22,7 @@ export default function TextToImage() {
   const [showOutline, setShowOutline] = useState(false)
   const [outlineColor, setOutlineColor] = useState('#000000')
   const [isOutlineColorPickerOpen, setIsOutlineColorPickerOpen] = useState(false)
+  const [selectedFont, setSelectedFont] = useState('Hiragino Sans')
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const canvasSize = 128 // キャンバスのサイズを固定
   const borderColor = '#000000'
@@ -38,7 +46,7 @@ const drawTextInCanvas = useCallback((
     outlineColor: string
   ) => {
     ctx.clearRect(0, 0, canvasSize, canvasSize)
-    ctx.font = `${fontSize}px 'Hiragino Sans', 'Meiryo', sans-serif`
+    ctx.font = `${fontSize}px ${selectedFont}, sans-serif`
     ctx.textBaseline = 'middle'
 
     const lines = text.split('\n')
@@ -68,7 +76,7 @@ const drawTextInCanvas = useCallback((
     ctx.lineWidth = 1.0 // default
     ctx.setLineDash([5, 5])
     ctx.strokeRect(0, 0, canvasSize, canvasSize)
-  }, [canvasSize, borderColor])
+  }, [canvasSize, borderColor, selectedFont])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -87,7 +95,7 @@ const drawTextInCanvas = useCallback((
         }
       }
     }
-  }, [text, textColor, showOutline, outlineColor, calculateOptimalFontSize, drawTextInCanvas, canvasSize, borderColor])
+  }, [text, textColor, showOutline, outlineColor, selectedFont, calculateOptimalFontSize, drawTextInCanvas, canvasSize, borderColor])
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value
@@ -119,7 +127,7 @@ const drawTextInCanvas = useCallback((
         // テキストを再描画（点線の枠なし）
         if (text) {
           const fontSize = calculateOptimalFontSize(ctx, text, canvasSize - 10, canvasSize - 10)
-          ctx.font = `${fontSize}px 'Hiragino Sans', 'Meiryo', sans-serif`
+          ctx.font = `${fontSize}px ${selectedFont}, sans-serif`
           ctx.textBaseline = 'middle'
       
           const lines = text.split('\n')
@@ -241,6 +249,18 @@ const drawTextInCanvas = useCallback((
               </div>
             </PopoverContent>
           </Popover>
+          <Select value={selectedFont} onValueChange={setSelectedFont}>
+            <SelectTrigger className="w-full" aria-label="フォントを選択">
+              <SelectValue placeholder="フォントを選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {fontOptions.map((font) => (
+                <SelectItem key={font.value} value={font.value}>
+                  {font.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <canvas
           ref={canvasRef}
