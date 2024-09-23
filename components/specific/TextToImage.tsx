@@ -4,14 +4,20 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import { Download, Palette } from "lucide-react"
 
 export default function TextToImage() {
   const [text, setText] = useState('')
   const [textColor, setTextColor] = useState('#000000')
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
+  const [showOutline, setShowOutline] = useState(false)
+  const [outlineColor, setOutlineColor] = useState('#000000')
+  const [isOutlineColorPickerOpen, setIsOutlineColorPickerOpen] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const canvasSize = 128 // キャンバスのサイズを固定
+  const borderColor = '#000000'
 
   const calculateOptimalFontSize = useCallback((ctx: CanvasRenderingContext2D, text: string, maxWidth: number, maxHeight: number) => {
     const lines = text.split('\n')
@@ -23,10 +29,16 @@ export default function TextToImage() {
     return fontSize
   }, [])
 
-  const drawTextInCanvas = useCallback((ctx: CanvasRenderingContext2D, text: string, fontSize: number, color: string) => {
+const drawTextInCanvas = useCallback((
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    fontSize: number,
+    color: string,
+    outline: boolean,
+    outlineColor: string
+  ) => {
     ctx.clearRect(0, 0, canvasSize, canvasSize)
     ctx.font = `${fontSize}px 'Hiragino Sans', 'Meiryo', sans-serif`
-    ctx.fillStyle = color
     ctx.textBaseline = 'middle'
 
     const lines = text.split('\n')
@@ -39,14 +51,24 @@ export default function TextToImage() {
     lines.forEach((line, index) => {
       const lineWidth = ctx.measureText(line).width
       const startX = canvasSize < lineWidth ? 0: (canvasSize - lineWidth) / 2
+      if (outline) {
+        ctx.setLineDash([])
+        ctx.strokeStyle = outlineColor
+        ctx.lineWidth = fontSize * 0.1 // フォントサイズの10%を輪郭線の太さとする
+        ctx.lineJoin = 'round'
+        ctx.miterLimit = 2
+        ctx.strokeText(line, startX, startY + lineHeight * index, canvasSize)
+      }
+      ctx.fillStyle = color
       ctx.fillText(line, startX, startY + lineHeight * index, canvasSize)
     })
 
     // 点線の枠を描画
-    ctx.strokeStyle = color
+    ctx.strokeStyle = borderColor
+    ctx.lineWidth = 1.0 // default
     ctx.setLineDash([5, 5])
     ctx.strokeRect(0, 0, canvasSize, canvasSize)
-  }, [canvasSize])
+  }, [canvasSize, borderColor])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -55,17 +77,17 @@ export default function TextToImage() {
       if (ctx) {
         if (text) {
           const fontSize = calculateOptimalFontSize(ctx, text, canvasSize - 10, canvasSize - 10)
-          drawTextInCanvas(ctx, text, fontSize, textColor)
+          drawTextInCanvas(ctx, text, fontSize, textColor, showOutline, outlineColor)
         } else {
           // テキストがない場合は点線の枠だけを描画
           ctx.clearRect(0, 0, canvasSize, canvasSize)
-          ctx.strokeStyle = textColor
+          ctx.strokeStyle = borderColor
           ctx.setLineDash([5, 5])
           ctx.strokeRect(0, 0, canvasSize, canvasSize)
         }
       }
     }
-  }, [text, textColor, calculateOptimalFontSize, drawTextInCanvas, canvasSize])
+  }, [text, textColor, showOutline, outlineColor, calculateOptimalFontSize, drawTextInCanvas, canvasSize, borderColor])
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value
@@ -98,19 +120,27 @@ export default function TextToImage() {
         if (text) {
           const fontSize = calculateOptimalFontSize(ctx, text, canvasSize - 10, canvasSize - 10)
           ctx.font = `${fontSize}px 'Hiragino Sans', 'Meiryo', sans-serif`
-          ctx.fillStyle = textColor
           ctx.textBaseline = 'middle'
-
+      
           const lines = text.split('\n')
           const lineHeight = fontSize * 1.1
           const totalTextHeight = lineHeight * lines.length
-
+      
           let startY = (canvasSize - totalTextHeight) / 2 + lineHeight / 2
-          startY = Math.max(startY, lineHeight / 2)
-
+          startY = Math.max(startY, lineHeight / 2) // startYが上すぎないようにする
+      
           lines.forEach((line, index) => {
             const lineWidth = ctx.measureText(line).width
             const startX = canvasSize < lineWidth ? 0: (canvasSize - lineWidth) / 2
+            if (showOutline) {
+              ctx.setLineDash([])
+              ctx.strokeStyle = outlineColor
+              ctx.lineWidth = fontSize * 0.1 // フォントサイズの10%を輪郭線の太さとする
+              ctx.lineJoin = 'round'
+              ctx.miterLimit = 2
+              ctx.strokeText(line, startX, startY + lineHeight * index, canvasSize)
+            }
+            ctx.fillStyle = textColor
             ctx.fillText(line, startX, startY + lineHeight * index, canvasSize)
           })
         }
@@ -130,6 +160,10 @@ export default function TextToImage() {
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTextColor(e.target.value)
+  }
+
+  const handleOutlineColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setOutlineColor(e.target.value)
   }
 
   return (
@@ -167,6 +201,41 @@ export default function TextToImage() {
                   type="color"
                   value={textColor}
                   onChange={handleColorChange}
+                  className="w-full h-10 cursor-pointer"
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-outline"
+              checked={showOutline}
+              onCheckedChange={(checked) => setShowOutline(checked as boolean)}
+            />
+            <Label htmlFor="show-outline">文字に輪郭線を表示</Label>
+          </div>
+          <Popover open={isOutlineColorPickerOpen} onOpenChange={setIsOutlineColorPickerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full flex items-center justify-center space-x-2"
+                aria-label="輪郭線の色を選択"
+                disabled={!showOutline}
+              >
+                <Palette className="w-4 h-4" />
+                <span>輪郭線の色を選択</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64">
+              <div className="flex flex-col space-y-2">
+                <label htmlFor="outline-color-picker" className="text-sm font-medium">
+                  輪郭線の色
+                </label>
+                <input
+                  id="outline-color-picker"
+                  type="color"
+                  value={outlineColor}
+                  onChange={handleOutlineColorChange}
                   className="w-full h-10 cursor-pointer"
                 />
               </div>
