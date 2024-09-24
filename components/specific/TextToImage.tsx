@@ -9,10 +9,29 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Download, Palette } from "lucide-react"
 
+import { Noto_Sans_JP, Noto_Serif_JP, M_PLUS_Rounded_1c, Dela_Gothic_One } from "next/font/google"
+const notoSansJP = Noto_Sans_JP({
+  weight: ["400"],
+  subsets: ["latin"],
+})
+const notoSerifJP = Noto_Serif_JP({
+  weight: ["400"],
+  subsets: ["latin"],
+})
+const mPlusRounded1c = M_PLUS_Rounded_1c({
+  weight: ["400"],
+  subsets: ["latin"],
+})
+const delaGothicOne = Dela_Gothic_One({
+  weight: ["400"],
+  subsets: ["latin"],
+})
+
 const fontOptions = [
-  { value: 'Hiragino Sans', label: 'ヒラギノ角ゴシック' },
-  { value: 'Meiryo', label: 'メイリオ' },
-  { value: 'Hiragino Mincho Pro', label: 'ヒラギノ明朝' },
+  { value: `${notoSansJP.style.fontFamily}`, label: 'Noto Sans Japanese' },
+  { value: `${notoSerifJP.style.fontFamily}`, label: 'Noto Serif Japanese' },
+  { value: `${mPlusRounded1c.style.fontFamily}`, label: 'M PLUS Rounded 1c' },
+  { value: `${delaGothicOne.style.fontFamily}`, label: 'Dela Gothic One' },
 ]
 
 export default function TextToImage() {
