@@ -1,3 +1,10 @@
+# emojify
+discordとかslackとか用の絵文字作るやつ  
+
+special thanks to [v0](https://v0.dev/chat)
+
+---
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`c3`](https://developers.cloudflare.com/pages/get-started/c3).
 
 ## Getting Started
